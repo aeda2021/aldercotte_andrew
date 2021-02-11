@@ -21,4 +21,11 @@ Q8: 2 of my models are nested, just because I thought that fare and embarkment m
 
 Q9: delta AIC is the difference between the AIC of the model in question and the one on the line above. It tells you the relative quality of the fits for the different models.
 
-Q10: Of my models, survived ~ Pclss had the lowerst AIC and was therefore the best fit. It was a better predictor of survivability than fare was in and of itself. The fare + embark model had a slightly lower AIC than just fare.  
+Q10: Of my models, survived ~ Pclss had the lowerst AIC and was therefore the best fit. It was a better predictor of survivability than fare was in and of itself. The fare + embark model had a slightly lower AIC than just fare.
+
+Q11A: In my case the negative binomial fit had a marginally lower AIC
+Q11B: We are making this inference based on the fact that a negative binomial distribution fit to the data had a higher likelihood. We are comparing the likelihood of the models fits, given the data, with eachother, but  AIC is penalized for the number of variables used to make that fit. N binom has 1 more parameter, so if the two models explained the data equally well, the poisson should have a lower AIC. 
+
+Q12: In the former situation, you are taking all sorts of data that may or may not be related in any real terms and basically p-hacking. Your chances of finding a model with good fit increases as you add variables and try more combinations regardless of any mechanistic relationship. In the latter case, you select a few parameters based on exploring the fits of models to one dataset. If the variables you choose are only correlated by chance, you have a low chance of finding the same correlations in the new, independent data set you collect subsequently. If they are true predictors you have a good chance of finding a model that only includes a few good mechanisms as predictors. 
+
+Q13: x1 and x4 are definitely important, as all of the models with the lowest AICcs include both of them. However, there are models with low AICcs that include other variables, and they are kind of all over the place. 
