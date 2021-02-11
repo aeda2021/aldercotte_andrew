@@ -1,0 +1,24 @@
+
+
+Q1: The test statistic with regards to p should be lowest at 0.2. The larger the difference between the actual p value and our measured p value of 0.2, the less likely we were to get a p value of 0.2 in our sample...
+
+Q2A: See code
+Q2B: Just visually, it looks like 0.07 to 0.4
+
+Q3A: The new 95% confidence interval is from 0.149 to 0.259
+Q3B: I think you left the code for this in right?
+
+Q4A: They are becoming less zero inflated and wider as the number of predictors increases.
+Q4B: The average difference in likelihood between models increases when they are more different in terms of parameter #'s, because models with more parameters will describe more of the variation in the data.
+
+Q5: If i'm getting this right, the p-value describes the likelihood of getting a fit as good or better than the new model, if the predictors used actually aren't predictors. I.e. the p-value is saying "What is the likelihood of getting a better fit with this model if the added predictors don't actually have any correlation/mechanistic relationship with the data". The null hypothesis is that there is in fact no difference between two models in their predictive power, but if the p-value is very low then it is unlikely for that to be the case.
+
+Q6A: Each Chi-square refers to the difference between that model and the previous one in the list. So the chi-square on line two compares the likelihood ratio of the model with just sex to the intercept only model. Same for the p-values, except the p-value adjusts for the degrees of freedom.
+Q6B: The null hypothesis being tested is that the two models are actually equal in predictive power, because there is no mechanistic relationship between the added predictor and the outcome.
+Q6C: The lrtest() suggests that Sex is correlated with survivability but Age is not.
+
+Q8: 2 of my models are nested, just because I thought that fare and embarkment might be correlated... 
+
+Q9: delta AIC is the difference between the AIC of the model in question and the one on the line above. It tells you the relative quality of the fits for the different models.
+
+Q10: Of my models, survived ~ Pclss had the lowerst AIC and was therefore the best fit. It was a better predictor of survivability than fare was in and of itself. The fare + embark model had a slightly lower AIC than just fare.  
