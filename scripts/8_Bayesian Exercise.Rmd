@@ -332,8 +332,8 @@ Below, translate your probability statement into a JAGs model. Remember, for() l
 ```{r Try it - crab model}
 crab.mod <- function(){
  for(i in 1:N){
-   y[i] ~ dpois(lam[i])
-   lam[i] <- alpha + b[i]*x[i]
+  y[i] ~ dpois(lam[i])
+  log(lam[i]) <- alpha + b*x[i]
  }
   ##Priors:
   alpha ~ dnorm(0,.01)
@@ -378,13 +378,16 @@ fm.crabs.dat <- as.data.frame(as.matrix(fm.crabs.mcmc))
 
 Run diagnostics - make traceplots and calculate the Gelman diagnostic.
 ```{r Crab model - diagnostics, eval=F}
-
+traceplot(fm.crabs.mcmc)
+gelman.diag(fm.crabs.mcmc)
 
 ```
 
 Plot your results using `plotPost()`. In addition to plotting posteriors of just your parameters, plot the posterior for the mean number of burrows. Remember, your parameters are on the log scale. Give each plot a meaningful/interpretable title (e.g. "Effect of salinity" rather than "beta").
 ```{r Crab model - results, eval=F}
-
+plotPost(fm.crabs.dat$alpha, main = "Intercept")
+plotPost(fm.crabs.dat$b, main = 'Effect of Salinity')
+plotPost(exp(fm.crabs.dat$alpha), main = 'Estimated # of Burrows at Mean Salinity')
 
 ```
 
@@ -395,6 +398,10 @@ Plot your results using `plotPost()`. In addition to plotting posteriors of just
 * Given our data and assumptions, what is the probability that salinity has no effect (approximately)?
 
 *Answer:*
+* The expectd number of burrows at mean salinity is 10.9, and the95% confidence interval is from 9.58 to 12.6
+* If we hadn't centered salinity on the mean, we would likely have an intercept that signified 0 salinity (fresh water), which may not be be within the realm of interesting values for this crab species. 
+* The effect of salinity is positive, with change in log(burrows) of 0.0339 for each 1 SD increase in salinity. The 95% confidence interval on this effect is from 0.0201 to 0.0474
+* Given the posterior distribution of our effect, it appears that there is almost no chance that salinity has no effect on burrow count. 
 
 ## Hierarchical model
 
@@ -406,7 +413,7 @@ In this version of the dataset, EC occurrence is recorded as presence-absence, s
 
 ```{r EC data}
 # FYI: Data are centered/scaled
-ticks <- read.csv("Ehrlichia_occurrence.csv")
+ticks <- X8_Ehrlichia_occurrence
 glimpse(ticks)
 ```
 
@@ -417,25 +424,46 @@ Use dbern(p) to denote a Bernoulli process, and logit() for the logit transforma
 
 ```{r Try it - EC model, eval=F}
 tick.mod <- function(){
+ for(i in 1:N){
+  y[i] ~ dbern(p[i])
+  logit(p[i]) <- bj[site[i]] + b1*x1[i] + b2*x2[i] + b3*x3[i]
+  }
   
+  ## Random intercepts:
+  for(j in 1:n.sites){
+    # each site-level intercept is a realization of a normal process:
+    bj[j] ~ dnorm(b0, 1/sigma^2) 
+  }
+  
+  ##Priors:
+  b0 ~ dnorm(0, 0.5)
+  b1 ~ dnorm(0, 0.2)
+  b2 ~ dnorm(0, 0.2)
+  b3 ~ dnorm(0, 0.2)
+  
+  sigma ~ dgamma(1, 1)
 }
 ```
 
 Here, set up your data list and initial values.
 ```{r Try it - set up, eval=F}
 datList.ticks <- list(
-  # Number observations
-  # the observations themselves
-  # forest area
-  # forest edge
-  # evergreen forest
-  # site
-  # number of sites
+  N = nrow(ticks),# Number observations
+  y = ticks$ec,# the observations themselves
+  x1 = ticks$forest,# forest area
+  x2 = ticks$edge,# forest edge
+  x3 = ticks$evergreen,# evergreen forest
+  site = as.factor(ticks$site),# site
+  n.sites = length(unique(ticks$site))# number of sites
 )
 
 initial.values.ticks <- replicate(3, list(list(
-  
-)))
+  b0 = rnorm(1, 0, 30),
+  b1 = rnorm(1, 0, 30),
+  b2 = rnorm(1, 0, 30),
+  b3 = rnorm(1, 0, 30),
+  sigma = rgamma(1, 1, .01))))
+
 ```
 
 Run the model:
@@ -443,7 +471,7 @@ Run the model:
 fm.ticks <- jags(
   data = datList.ticks,
   model.file = tick.mod,
-  parameters.to.save = ,
+  parameters.to.save = c('b0','b1','b2','b3','sigma'),
   n.chains = 3,
   n.iter = 20000,
   n.burnin = 5000,
@@ -456,14 +484,21 @@ fm.ticks.dat <- as.data.frame(as.matrix(fm.ticks.mcmc))
 
 Run traceplots and Gelman's diagnostic:
 ```{r Try it- diagnostics, eval=F}
-
+traceplot(fm.ticks.mcmc)
+gelman.diag(fm.ticks.mcmc)
 ```
 
 Plot posteriors for EC occurrence, the effects of forest area, edge, and type, and the among-site variacne in EC occurrence. Give interpretable titles to your plots. If you want to transform the intercept from log-odds scale to probabilty, use the plogis() function.
 ```{r Try it - results, eval=F}
-
+plotPost(fm.ticks.dat$b0, main = "Intercept")
+plotPost(fm.ticks.dat$b1, main = 'Effect of Forested Area')
+plotPost(fm.ticks.dat$b2, main = 'Effect of Forest Edge')
+plotPost(fm.ticks.dat$b3, main = 'Effect of Evergreen-Deciduous Ratio')
+plotPost(fm.ticks.dat$sigma, main = 'Variance')
+plotPost(plogis(fm.ticks.dat$b0), main = 'Mean Probability of Detecting E. chaffeensis')
 ```
 
 *Question* Interpret these results. What was EC occupancy (I.e. probability of a plot testing positive)? Was there evidence for an effect of any of these variables? What would your general conclusions be?
 
 *Answer:*
+The mean occupancy of EC was 0.278. It's highly probable that an increase in forested area is associated with a decreased likelihood of EC occupancy. Similarly an increase in the amount of forest edge decreases EC occupancy. However, whether forest cover is evergreen or deciduous does not have a clear effect on the likelihood of detecting EC. It seems that the reality is counter to your hypotheses? Large, fragmented forests have lower probability of EC, and coniferoues and deciduous forests are roughly equivalent?
