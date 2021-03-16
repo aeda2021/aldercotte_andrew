@@ -227,5 +227,6 @@ summary(mod3)
 
 ## *mean summer temp appears to be more important than edge effects
 
+## out of time! fingers crossed!
 
 
